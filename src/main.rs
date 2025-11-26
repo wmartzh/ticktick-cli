@@ -2,6 +2,7 @@ use clap::Parser;
 
 mod api;
 mod config;
+mod keychain;
 mod local_server;
 
 /// Simple CLI tool with a local web server
@@ -20,15 +21,10 @@ struct Args {
 /// The #[tokio::main] macro sets up async runtime
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Load .env file first
-
-    // Load environment variables
-
-    // Parse command line arguments
     let args = Args::parse();
 
     if args.auth {
-        api::authenticate().await;
+        let _ = api::authenticate().await;
     }
 
     Ok(())
