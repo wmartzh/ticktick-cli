@@ -1,0 +1,17 @@
+[package]
+name = "tick-cli"
+version = "0.1.0"
+edition = "2021"
+authors = ["wmartz@gmail.com"]
+
+[dependencies]
+clap = { version = "4.5.53", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+warp = {version="0.4.2", features =["server"]}
+serde_json = "1.0"
+dotenv = "0.15"
+reqwest = "0.12.24"
+url = "2.2"
+open = "5.3.3"
+uuid = {version="1.18.1",features = ["v4",]}
