@@ -15,4 +15,5 @@ reqwest = {version="0.12.24", features = ["json"]}
 url = "2.2"
 open = "5.3.3"
 uuid = {version="1.18.1",features = ["v4",]}
-keyring = "3.6.3"
+keyring = "2.3"
+confy = "2.0.0"
