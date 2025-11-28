@@ -21,7 +21,7 @@ impl CredentialStore {
 
         // Verify it was saved
         match entry.get_password() {
-            Ok(saved) => println!("✅ Auth verified"),
+            Ok(_saved) => println!("✅ Auth verified"),
             Err(e) => println!("❌ Failed to verify: {}", e),
         }
 

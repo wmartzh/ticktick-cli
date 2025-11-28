@@ -1,6 +1,5 @@
 use clap::{Parser, Subcommand};
 
-use crate::keychain::CredentialStore;
 mod auth;
 mod config;
 mod keychain;
@@ -10,8 +9,13 @@ enum Commands {
     Auth {
         #[arg(short, long)]
         login: bool,
+    },
+    Config {
         #[arg(short, long)]
         email: Option<String>,
+
+        #[arg(short, long)]
+        project: Option<String>,
     },
 }
 
@@ -30,12 +34,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Auth { login, email } => {
-            if let Some(email) = email {
-                config::AppConfig::set_email(email)?;
-            }
+        Commands::Auth { login } => {
             if login {
-                auth::authenticate(config::AppConfig::get_config().email).await?;
+                auth::authenticate(config::AppConfig::load()?.email).await?;
+            }
+        }
+        Commands::Config { email, project } => {
+            if let Some(email) = email {
+                config::AppConfig::update(|cfg| {
+                    cfg.email = Some(email.clone());
+                })?;
+            } else if let Some(project) = project {
+                config::AppConfig::update(|cfg| {
+                    cfg.default_project = Some(project.clone());
+                })?;
             }
         }
     }

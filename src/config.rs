@@ -13,6 +13,7 @@ pub struct Config {
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct AppConfig {
     pub email: Option<String>,
+    pub default_project: Option<String>,
 }
 
 pub static CONFIG: OnceLock<Config> = OnceLock::new();
@@ -30,15 +31,27 @@ impl Config {
 }
 
 impl AppConfig {
-    pub fn get_config() -> AppConfig {
-        confy::load(&get().app_name, None).unwrap()
+    /// Load the user config from disk
+    pub fn load() -> Result<Self, Box<dyn Error>> {
+        let cfg: AppConfig = confy::load(&get().app_name, None)?;
+        Ok(cfg)
     }
 
-    pub fn set_email(email: String) -> Result<(), Box<dyn Error>> {
+    /// Update the config using a closure, then save to disk
+    ///
+    /// # Example
+    /// ```
+    /// AppConfig::update(|cfg| {
+    ///     cfg.email = Some("user@example.com".to_string());
+    ///     cfg.default_project = Some("work".to_string());
+    /// })?;
+    /// ```
+    pub fn update<F>(updater: F) -> Result<(), Box<dyn Error>>
+    where
+        F: FnOnce(&mut AppConfig),
+    {
         let mut cfg: AppConfig = confy::load(&get().app_name, None)?;
-
-        cfg.email = Some(email);
-
+        updater(&mut cfg);
         confy::store(&get().app_name, None, cfg)?;
         Ok(())
     }

@@ -49,7 +49,6 @@ async fn exchange_token(
     }
 
     let token_response: TokenResponse = res.json().await?;
-    println!("{:#?}", token_response);
     Ok(token_response)
 }
 
