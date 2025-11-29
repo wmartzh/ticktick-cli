@@ -26,7 +26,6 @@ impl TickTickApi {
             .await?;
 
         let projects: Vec<Project> = response.json().await?;
-        println!("{:#?}", projects);
         Ok(projects)
     }
     pub async fn get_project_id_by_name(
