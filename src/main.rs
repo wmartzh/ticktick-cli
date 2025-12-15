@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-use crate::{keychain::CredentialStore, tick_tick_api::TickTickApi};
+use crate::keychain::CredentialStore;
 
 mod auth;
 mod client;
@@ -8,11 +8,30 @@ mod config;
 mod keychain;
 mod services;
 mod tick_tick_api;
+mod ui;
 
 #[derive(Args, Debug)]
 struct CreateArgs {
     /// Task description (positional argument)
-    description: String,
+    title: String,
+
+    /// Project Name
+    #[arg(short, long)]
+    project: Option<String>,
+
+    /// Tags: use comma separated
+    #[arg(short, long, value_delimiter = ',')]
+    tags: Vec<String>,
+
+    /// Due Date
+    #[arg(short, long)]
+    due: String,
+}
+
+#[derive(Args, Debug)]
+struct GetArgs {
+    #[arg(short, long)]
+    all: bool,
 
     #[arg(short, long)]
     project: Option<String>,
@@ -21,6 +40,7 @@ struct CreateArgs {
 #[derive(Subcommand)]
 enum TaskCommands {
     Create(CreateArgs),
+    Get(GetArgs),
 }
 
 #[derive(Subcommand)]
@@ -104,13 +124,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             match action {
                 TaskCommands::Create(args) => {
-                    let project_id: Option<String> =
-                        services::projects::get_project_id(args.project)
-                            .await
-                            .unwrap_or(None);
-
-                    TickTickApi::create(args.description, project_id).await?;
+                    services::tasks::create_task(&args).await?;
                     println!("✅ Task added successfully")
+                }
+                TaskCommands::Get(args) => {
+                    services::tasks::get_tasks(args.project).await?;
                 }
             }
         }
