@@ -16,6 +16,7 @@ pub struct CreateTaskBody {
     pub project_id: Option<String>,
     pub tags: Vec<String>,
     pub due_date: Option<String>,
+    pub time_zone: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

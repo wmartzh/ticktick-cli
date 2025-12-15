@@ -1,32 +1,32 @@
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{NaiveDate, NaiveDateTime, TimeZone};
+use chrono_tz::Tz;
 
 use crate::{
     client, config, services, tick_tick_api::CreateTaskBody, ui::tables::render_tasks, CreateArgs,
 };
 
-fn parse_flexible_date(input: &str) -> Result<NaiveDateTime, String> {
-    // Format: YYYY-MM-DD HH:MM:SS
-    if let Ok(dt) = NaiveDateTime::parse_from_str(input, "%Y-%m-%d %H:%M:%S") {
-        return Ok(dt);
+fn parse_flexible_date(input: &str, timezone: &str) -> Option<String> {
+    // Parse the timezone
+    let tz: Tz = timezone.parse().ok()?;
+
+    // Format: YYYY-MM-DD HH:MMam/pm (e.g., "2025-12-16 2:00pm")
+    if let Ok(dt) = NaiveDateTime::parse_from_str(input, "%Y-%m-%d %I:%M%p") {
+        // Convert from local timezone to UTC
+        let local_dt = tz.from_local_datetime(&dt).single()?;
+        let utc_dt = local_dt.with_timezone(&chrono_tz::UTC);
+        return Some(utc_dt.format("%Y-%m-%dT%H:%M:%S+0000").to_string());
     }
 
-    // Format: YYYY-MM-DDTHH:MM:SS
-    if let Ok(dt) = NaiveDateTime::parse_from_str(input, "%Y-%m-%dT%H:%M:%S") {
-        return Ok(dt);
-    }
-
-    // Format: YYYY-MM-DD
+    // Format: YYYY-MM-DD (e.g., "2025-12-25")
     if let Ok(date) = NaiveDate::parse_from_str(input, "%Y-%m-%d") {
-        // If successful, convert it to DateTime at midnight (00:00:00)
-        // .and_hms_opt(0, 0, 0) handles invalid times safely
-        return Ok(date.and_hms_opt(0, 0, 0).unwrap());
+        // Convert to datetime at midnight in local timezone, then to UTC
+        let naive_dt = date.and_hms_opt(0, 0, 0)?;
+        let local_dt = tz.from_local_datetime(&naive_dt).single()?;
+        let utc_dt = local_dt.with_timezone(&chrono_tz::UTC);
+        return Some(utc_dt.format("%Y-%m-%dT%H:%M:%S+0000").to_string());
     }
 
-    // 3. If everything failed
-    Err(format!(
-        "Could not parse date: '{}'. Expected YYYY-MM-DD or YYYY-MM-DD HH:MM:SS",
-        input
-    ))
+    None
 }
 
 pub async fn create_task(args: &CreateArgs) -> Result<(), Box<dyn std::error::Error>> {
@@ -39,12 +39,11 @@ pub async fn create_task(args: &CreateArgs) -> Result<(), Box<dyn std::error::Er
         project_id,
         tags: args.tags.clone(),
         due_date: None,
+        time_zone: config::get().time_zone.clone(),
     };
 
-    if !args.due.is_empty() {
-        let new_date = parse_flexible_date(&args.due)?;
-        let date_str = new_date.format("%Y-%m-%dT%H:%M:%SZ").to_string();
-        body.due_date = Some(date_str);
+    if let Some(due) = &args.due {
+        body.due_date = parse_flexible_date(due, &config::get().time_zone);
     }
     println!("{:?}", body);
 

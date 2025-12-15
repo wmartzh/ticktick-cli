@@ -8,6 +8,7 @@ pub struct Config {
     pub app_name: String,
     pub api_host: String,
     pub auth_host: String,
+    pub time_zone: String,
 }
 
 #[derive(Default, Debug, Serialize, Deserialize)]
@@ -23,9 +24,10 @@ impl Config {
         dotenv().ok();
 
         Config {
-            app_name: "tick-cli".to_string(),
+            app_name: String::from("tick-cli"),
             api_host: env::var("API_HOST").expect("API_HOST is missing"),
             auth_host: env::var("AUTH_HOST").expect("AUTH_HOST is missing"),
+            time_zone: iana_time_zone::get_timezone().unwrap_or(String::from("")),
         }
     }
 }

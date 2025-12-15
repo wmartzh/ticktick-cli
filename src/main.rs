@@ -23,9 +23,9 @@ struct CreateArgs {
     #[arg(short, long, value_delimiter = ',')]
     tags: Vec<String>,
 
-    /// Due Date
+    /// Due Date (format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
     #[arg(short, long)]
-    due: String,
+    due: Option<String>,
 }
 
 #[derive(Args, Debug)]
