@@ -2,7 +2,10 @@ use chrono::{NaiveDate, NaiveDateTime, TimeZone};
 use chrono_tz::Tz;
 
 use crate::{
-    client, config, services, tick_tick_api::CreateTaskBody, ui::tables::render_tasks, CreateArgs,
+    client, config, services,
+    tick_tick_api::{CreateTaskBody, TaskPriority},
+    ui::tables::render_tasks,
+    CreateArgs,
 };
 
 fn parse_flexible_date(input: &str, timezone: &str) -> Option<String> {
@@ -29,6 +32,15 @@ fn parse_flexible_date(input: &str, timezone: &str) -> Option<String> {
     None
 }
 
+fn parse_priority(priority: &TaskPriority) -> u32 {
+    let value = match priority {
+        TaskPriority::Low => 1,
+        TaskPriority::Mid => 3,
+        TaskPriority::High => 5,
+    };
+    value
+}
+
 pub async fn create_task(args: &CreateArgs) -> Result<(), Box<dyn std::error::Error>> {
     let project_id: Option<String> = services::projects::get_project_id(args.project.clone())
         .await
@@ -40,12 +52,16 @@ pub async fn create_task(args: &CreateArgs) -> Result<(), Box<dyn std::error::Er
         tags: args.tags.clone(),
         due_date: None,
         time_zone: config::get().time_zone.clone(),
+        priority: None,
     };
 
     if let Some(due) = &args.due {
         body.due_date = parse_flexible_date(due, &config::get().time_zone);
     }
-    println!("{:?}", body);
+
+    if let Some(pr) = &args.priority {
+        body.priority = Some(parse_priority(pr));
+    }
 
     let _ = client::client()
         .post(format!("{}/open/v1/task", &config::get().api_host))

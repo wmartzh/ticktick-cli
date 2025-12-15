@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-use crate::keychain::CredentialStore;
+use crate::{keychain::CredentialStore, tick_tick_api::TaskPriority};
 
 mod auth;
 mod client;
@@ -16,7 +16,7 @@ struct CreateArgs {
     title: String,
 
     /// Project Name
-    #[arg(short, long)]
+    #[arg(long)]
     project: Option<String>,
 
     /// Tags: use comma separated
@@ -26,6 +26,10 @@ struct CreateArgs {
     /// Due Date (format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
     #[arg(short, long)]
     due: Option<String>,
+
+    //Priority
+    #[arg(short, long)]
+    priority: Option<TaskPriority>,
 }
 
 #[derive(Args, Debug)]

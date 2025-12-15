@@ -1,3 +1,4 @@
+use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -17,6 +18,7 @@ pub struct CreateTaskBody {
     pub tags: Vec<String>,
     pub due_date: Option<String>,
     pub time_zone: String,
+    pub priority: Option<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -49,4 +51,11 @@ pub struct Column {
 pub struct ProjectTaskResponse {
     pub columns: Vec<Column>,
     pub tasks: Vec<Task>,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
+pub enum TaskPriority {
+    Low,
+    Mid,
+    High,
 }
