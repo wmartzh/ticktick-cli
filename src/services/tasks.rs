@@ -4,7 +4,7 @@ use chrono_tz::Tz;
 use crate::{
     client, config, services,
     tick_tick_api::{CreateTaskBody, TaskPriority},
-    ui::tables::render_tasks,
+    ui::views::render_tasks,
     CreateArgs,
 };
 
@@ -78,7 +78,7 @@ pub async fn get_tasks(project: Option<String>) -> Result<(), Box<dyn std::error
         .unwrap_or(None);
     let tasks = services::projects::get_project_tasks(project_id).await?;
 
-    render_tasks(&tasks);
+    render_tasks(tasks)?;
 
     Ok(())
 }

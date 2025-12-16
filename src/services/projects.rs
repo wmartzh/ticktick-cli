@@ -25,6 +25,25 @@ pub async fn get_project_tasks(
     Ok(project_response.tasks)
 }
 
+pub async fn get_project_task(
+    project_id: Option<String>,
+    id: &str,
+) -> Result<Task, Box<dyn std::error::Error>> {
+    let name = project_id.unwrap_or("inbox".to_string());
+    let response = client::client()
+        .get(format!(
+            "{}/open/v1/project/{}/tastk/{}",
+            &config::get().api_host,
+            name,
+            id
+        ))
+        .send()
+        .await?;
+
+    let task_response = response.json::<Task>().await?;
+    Ok(task_response)
+}
+
 pub async fn get_projects() -> Result<Vec<Project>, Box<dyn std::error::Error>> {
     let response = client::client()
         .get(format!("{}/open/v1/project", &config::get().api_host))
