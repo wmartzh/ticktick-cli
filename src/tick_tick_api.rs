@@ -7,7 +7,7 @@ pub struct Project {
     pub id: String,
     pub name: String,
     pub kind: Option<String>,
-    pub sort_order: u64,
+    pub sort_order: i64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,7 +21,7 @@ pub struct CreateTaskBody {
     pub priority: Option<u32>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Task {
     pub id: String,
@@ -35,6 +35,7 @@ pub struct Task {
     pub project_id: String,
     pub status: u32,
     pub tags: Option<Vec<String>>,
+    pub sort_order: i64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -50,7 +51,7 @@ pub struct Column {
 #[serde(rename_all = "camelCase")]
 pub struct ProjectTaskResponse {
     pub columns: Vec<Column>,
-    pub tasks: Vec<Task>,
+    pub tasks: Option<Vec<Task>>,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]

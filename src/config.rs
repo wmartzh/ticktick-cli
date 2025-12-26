@@ -14,7 +14,7 @@ pub struct Config {
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct AppConfig {
     pub email: Option<String>,
-    pub default_project: Option<String>,
+    pub default_project: String,
 }
 
 pub static CONFIG: OnceLock<Config> = OnceLock::new();

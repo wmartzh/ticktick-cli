@@ -4,25 +4,26 @@ use crate::{
 };
 
 pub async fn get_project_tasks(
-    project_id: Option<String>,
+    project_id: &String,
 ) -> Result<Vec<Task>, Box<dyn std::error::Error>> {
-    let name = project_id.unwrap_or("inbox".to_string());
+    println!("{:?}", project_id);
     let response = client::client()
         .get(format!(
             "{}/open/v1/project/{}/data",
             &config::get().api_host,
-            name
+            project_id
         ))
         .send()
         .await?;
 
-    // Get the raw response text to debug
-    let response_text = response.text().await?;
+    let body = response.text().await?;
 
-    // Try to deserialize
-    let project_response: ProjectTaskResponse = serde_json::from_str(&response_text)?;
+    let project_data: ProjectTaskResponse = serde_json::from_str(&body)?;
 
-    Ok(project_response.tasks)
+    if let Some(tasks) = project_data.tasks {
+        return Ok(tasks);
+    }
+    Err("No tasks found on project".into())
 }
 
 pub async fn get_project_task(
@@ -54,36 +55,36 @@ pub async fn get_projects() -> Result<Vec<Project>, Box<dyn std::error::Error>> 
     Ok(projects)
 }
 
-pub async fn get_project_id_by_name(
-    name: &str,
-) -> Result<Option<String>, Box<dyn std::error::Error>> {
-    let mut project_id: Option<String> = None;
+fn is_white_list_value(name: &str) -> bool {
+    let white_list: Vec<String> = vec![String::from("inbox")];
 
-    if name.to_lowercase() == "inbox" {
-        println!("⚠️Project not found using inbox");
-        project_id = None
-    } else {
-        let projects = get_projects().await.unwrap_or(Vec::new());
-        if let Some(p) = projects.iter().find(|p| {
-            let lower_name = p.name.to_lowercase();
-            lower_name.contains(&name.to_lowercase())
-        }) {
-            project_id = Some(p.id.clone());
-        }
-    }
-    Ok(project_id)
+    let value = white_list.iter().find(|&v| v == name);
+
+    value.is_some()
 }
 
-pub async fn get_project_id(
-    project: Option<String>,
-) -> Result<Option<String>, Box<dyn std::error::Error>> {
-    let default_project = config::AppConfig::load()?
-        .default_project
-        .unwrap_or("inbox".to_string());
+async fn get_project_id(project_name: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let projects = get_projects().await?;
+    if let Some(current_project) = projects.iter().find(|p| {
+        let lower_case_name = &p.name.to_lowercase();
+        return lower_case_name.contains(&project_name.to_lowercase());
+    }) {
+        return Ok(current_project.id.clone());
+    }
+    Err("Cannot get project id".into())
+}
 
-    let project_name = project.unwrap_or(default_project.clone());
+pub async fn get_project(name: Option<String>) -> Result<String, Box<dyn std::error::Error>> {
+    let default_project = &config::AppConfig::load()?.default_project;
 
-    let project_id = get_project_id_by_name(&project_name).await?;
-
-    Ok(project_id)
+    if let Some(user_project) = name {
+        if is_white_list_value(&user_project) {
+            return Ok(user_project);
+        }
+        let project_id = get_project_id(&user_project).await?;
+        return Ok(project_id);
+    } else {
+        let project_id = get_project_id(&default_project).await?;
+        return Ok(project_id);
+    }
 }

@@ -9,6 +9,7 @@ static API_CLIENT: OnceLock<Client> = OnceLock::new();
 
 pub fn init_client(token: &str) -> Result<(), reqwest::Error> {
     let mut headers = header::HeaderMap::new();
+    print!("token {:?}\n", token); //TODO: Remove this
     headers.insert(
         header::AUTHORIZATION,
         header::HeaderValue::from_str(&format!("Bearer {}", token)).expect("Invalid token"),

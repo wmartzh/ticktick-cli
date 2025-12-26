@@ -42,13 +42,11 @@ fn parse_priority(priority: &TaskPriority) -> u32 {
 }
 
 pub async fn create_task(args: &CreateArgs) -> Result<(), Box<dyn std::error::Error>> {
-    let project_id: Option<String> = services::projects::get_project_id(args.project.clone())
-        .await
-        .unwrap_or(None);
+    let project_id = services::projects::get_project(Some(args.project.clone())).await?;
 
     let mut body = CreateTaskBody {
         title: args.title.clone(),
-        project_id,
+        project_id: Some(project_id),
         tags: args.tags.clone(),
         due_date: None,
         time_zone: config::get().time_zone.clone(),
@@ -73,10 +71,9 @@ pub async fn create_task(args: &CreateArgs) -> Result<(), Box<dyn std::error::Er
 }
 
 pub async fn get_tasks(project: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
-    let project_id: Option<String> = services::projects::get_project_id(project)
-        .await
-        .unwrap_or(None);
-    let tasks = services::projects::get_project_tasks(project_id).await?;
+    let project_id = services::projects::get_project(project).await?;
+    println!("using project {:?}\n", project_id);
+    let tasks = services::projects::get_project_tasks(&project_id).await?;
 
     render_tasks(tasks)?;
 

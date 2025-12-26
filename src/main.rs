@@ -17,7 +17,7 @@ struct CreateArgs {
 
     /// Project Name
     #[arg(long)]
-    project: Option<String>,
+    project: String,
 
     /// Tags: use comma separated
     #[arg(short, long, value_delimiter = ',')]
@@ -114,9 +114,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 })?;
                 println!("✅ Email saved: {}", email);
             } else if let Some(project) = project {
-                config::AppConfig::update(|cfg| {
-                    cfg.default_project = Some(project.clone());
-                })?;
+                config::AppConfig::update(|cfg| cfg.default_project = project.clone())?;
                 println!("✅ Default project saved: {}", project);
             } else if show {
                 println!("{:#?}", config::AppConfig::load()?);
@@ -132,6 +130,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("✅ Task added successfully")
                 }
                 TaskCommands::Get(args) => {
+                    println!("{:?}", args);
                     services::tasks::get_tasks(args.project).await?;
                 }
             }
